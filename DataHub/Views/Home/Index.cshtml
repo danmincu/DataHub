@@ -1,8 +1,35 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿<div class="container">
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+
+    <div class="row">
+        <div class="col-3">Connection Status: </div>
+        <div class="col-4">
+            <div id="led" class="led"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-3">Logged in status: </div>
+        <div class="col-4">
+            <div id="loggedInLed" class="led"></div>
+        </div>
+    </div>
+    
+    
+    <div class="row">
+        <div class="col-3">Total Succesfull Connections: </div>
+        <div class="col-4">
+            <span id="totalSuccesfullConnectionsCount"></span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-3">Total Live Connection: </div>
+        <div class="col-4">
+            <span id="liveConnectionsCount"></span>
+        </div>
+    </div>
+
 </div>
+
+<script src="~/lib/microsoft-signalr/signalr.js"></script>
+<script src="~/js/query.js"></script>

@@ -1,18 +1,46 @@
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
 }
+
+.led {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid #808080;
+    background-color: #ccc;
+}
+
+.led.green {
+        background-color: green;
+    }
+
+.led.limegreen {
+        background-color: limegreen;
+    }
+
+.led.red {
+        background-color: red;
+    }
+
+.led.orange {
+        background-color: orange;
+    }
+
+.led.blue {
+        background-color: blue;
+    }
