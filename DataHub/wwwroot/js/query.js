@@ -2,7 +2,9 @@
 var connectionQuery = new signalR.HubConnectionBuilder()
     .configureLogging(signalR.LogLevel.Information)
     .withAutomaticReconnect()
-    .withUrl("/hubs/query", signalR.HttpTransportType.WebSockets)
+    .withUrl("/hubs/query")
+    //.withUrl("/hubs/query", signalR.HttpTransportType.WebSockets)
+    //.withUrl("/hubs/query", signalR.HttpTransportType.LongPolling)
     .build();
 
 connectionQuery.on("updateTotalSuccesfullConnections", function (query) {
@@ -63,13 +65,18 @@ connectionQuery.onclose((error) => {
     setLoggedInLEDColor('red');
 });
 
+
+connectionQuery.onreconnecting((connectionId) => {
+   console.log("Connection to User Hub Connected" + connectionId);
+})
+
 connectionQuery.onreconnected((connectionId) => {
-    //document.body.style.background = "green";
+    console.log("Connection to User Hub Reconnected" + connectionId);
     setLEDColor('green');
 });
 
 connectionQuery.onreconnecting((error) => {
-    //document.body.style.background = "orange";
+    console.log("Reconnecting: " + error);
     setLEDColor('orange');
 });
 

@@ -22,6 +22,8 @@ namespace DataHub.Hubs
 
         public async override Task OnConnectedAsync()
         {
+            Console.WriteLine("Connect " + Context.ConnectionId);
+
             if (liveConnections.Count + 1 > maxLiveConnectionCount)
             {
                 await Clients.Client(Context.ConnectionId).SendAsync("maxLiveConnectionCountReached", maxLiveConnectionCount);
@@ -41,7 +43,8 @@ namespace DataHub.Hubs
         public async override Task OnDisconnectedAsync(Exception? exception)
         {
             var cid = Context.ConnectionId;
-            
+            Console.WriteLine("Disconnect " + cid);
+
             if (liveConnections.TryGetValue(cid, out string? value))
             {
                 await this.Groups.RemoveFromGroupAsync(cid, "liveConnections").ConfigureAwait(false);
