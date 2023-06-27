@@ -1,9 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using System.Collections;
 using System.Collections.Concurrent;
-using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace DataHub.Hubs
 {
@@ -28,17 +24,18 @@ namespace DataHub.Hubs
         {
             if (liveConnections.Count + 1 > maxLiveConnectionCount)
             {
-                await this.Groups.AddToGroupAsync(Context.ConnectionId, "deadConnections");                
                 await Clients.Client(Context.ConnectionId).SendAsync("maxLiveConnectionCountReached", maxLiveConnectionCount);
             }
             else
             {
+                
                 await Clients.Client(Context.ConnectionId).SendAsync("connectionAccepted", maxLiveConnectionCount);
                 await this.Groups.AddToGroupAsync(Context.ConnectionId, "liveConnections");
                 liveConnections.TryAdd(Context.ConnectionId, null);
                 await Clients.Group("liveConnections").SendAsync("updateTotalLiveConnections", liveConnections.Count);
+                await base.OnConnectedAsync();
             }
-            await base.OnConnectedAsync();
+            
         }
 
         public async override Task OnDisconnectedAsync(Exception? exception)
@@ -49,10 +46,6 @@ namespace DataHub.Hubs
             {
                 await this.Groups.RemoveFromGroupAsync(cid, "liveConnections").ConfigureAwait(false);
                 liveConnections.TryRemove(cid, out string? value1);
-            }
-            else
-            {
-                await this.Groups.RemoveFromGroupAsync(cid, "deadConnections").ConfigureAwait(false);
             }
             
             Clients.Group("liveConnections").SendAsync("updateTotalLiveConnections", liveConnections.Count).GetAwaiter().GetResult();
