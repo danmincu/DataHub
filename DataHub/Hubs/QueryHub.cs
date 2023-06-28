@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNet.SignalR.Hubs;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
+using Hub = Microsoft.AspNetCore.SignalR.Hub;
 
 namespace DataHub.Hubs
 {
+    [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = "Bearer")]
+    //[Microsoft.AspNet.SignalR.Authorize(AuthenticationSchemes = "Bearer")]
     public class QueryHub : Hub
     {
         public static int TotalSuccesfullConnections { get; set; }
@@ -26,6 +29,8 @@ namespace DataHub.Hubs
         private static readonly ConcurrentDictionary<string, string?> liveConnections = new ConcurrentDictionary<string, string?>();
         private readonly IDataGenerator _dataGenerator;
 
+        //[Microsoft.AspNetCore.Authorization.Authorize]
+        //[Microsoft.AspNet.SignalR.Authorize]
         public async Task<string> ConnectQuery(int maxMessageCount, string? ackId = null)
         {            
             _maxMessageCount = maxMessageCount;

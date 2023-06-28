@@ -1,5 +1,6 @@
 ﻿using DataHub.Hubs;
 using DataHub.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System.Diagnostics;
@@ -29,6 +30,7 @@ namespace DataHub.Controllers
             return View();
         }
 
+        [Authorize]
         public IActionResult Privacy()
         {
             return View();
