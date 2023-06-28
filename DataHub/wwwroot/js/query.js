@@ -45,11 +45,11 @@ function connect() {
 }
 
 function receivedAck(ackId) {
-    connection.invoke("ReceivedAck", ackId);
+    connection.invoke("soft-ack", ackId);
 }
 
 function ack(ackId) {
-    connection.invoke("Ack", ackId).then(function (ack) {
+    connection.invoke("hard-ack", ackId).then(function (ack) {
         console.log(ack);
     });
 }
@@ -58,7 +58,7 @@ function connectAndAck(ackId) {
     //do something on start
     console.log("Connection to User Hub Successful");
     var maxEventCount = 15;
-    connection.invoke("ConnectQuery", maxEventCount, ackId).then(function (connectionId) {
+    connection.invoke("connectToHub", maxEventCount, ackId).then(function (connectionId) {
         document.getElementById("connectionId").innerText = connectionId;
         console.log('Connection to User Hub Connected using ' + connectionId);
     });

@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 using Hub = Microsoft.AspNetCore.SignalR.Hub;
 
 namespace DataHub.Hubs
 {
-    [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = "Bearer")]
-    //[Microsoft.AspNet.SignalR.Authorize(AuthenticationSchemes = "Bearer")]
+    // if AuthenticationSchemes = "Bearer" is missing it behaves like an AllowAnonymous Hub. didn't investigate why.
+    [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = "Bearer")]    
     public class QueryHub : Hub
     {
         public static int TotalSuccesfullConnections { get; set; }
@@ -17,7 +16,6 @@ namespace DataHub.Hubs
         }
 
         private int maxLiveConnectionCount = 2;
-        private int _maxMessageCount;
         private IDisposable? _subscription;
 
         protected override void Dispose(bool disposing)
@@ -29,10 +27,9 @@ namespace DataHub.Hubs
         private static readonly ConcurrentDictionary<string, string?> liveConnections = new ConcurrentDictionary<string, string?>();
         private readonly IDataGenerator _dataGenerator;
 
+        [Microsoft.AspNetCore.SignalR.HubMethodName("connectToHub")]
         public async Task<string> ConnectQuery(int maxMessageCount, string? ackId = null)
         {            
-            _maxMessageCount = maxMessageCount;
-            //Context.Items.Add("maxMessageCount", maxMessageCount);
             this._dataGenerator.SetMaxMessageCount(maxMessageCount);
             if (ackId != null)
             {
@@ -44,6 +41,7 @@ namespace DataHub.Hubs
         }
 
 
+        [Microsoft.AspNetCore.SignalR.HubMethodName("soft-ack")]
         public async Task<string> ReceivedAck(string ackId)
         {
             Console.WriteLine("Confirming the delivery of data with AckId: " + ackId);
@@ -51,13 +49,14 @@ namespace DataHub.Hubs
             return await Task.FromResult(ackId);
         }
 
+        [Microsoft.AspNetCore.SignalR.HubMethodName("hard-ack")]
         public async Task<string> Ack(string ackId)
         {
             this._dataGenerator.Ack(ackId);
             return await Task.FromResult(ackId);
         }
 
-        //public async Task data(string ackId, string data)
+        //public async Task Data(string ackId, string data)
         //{
         //    Console.WriteLine($"Sending data with ackId: {ackId}");
         //    await Clients.Group("liveConnections").SendAsync("data", ackId, data);

@@ -1,12 +1,7 @@
-using DataHub.Data;
 using DataHub.Hubs;
-using Microsoft.AspNet.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -19,15 +14,7 @@ namespace DataHub
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
             // Add services to the container.
-            //var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-            //builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            //    options.UseSqlServer(connectionString));
-            //builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-            //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-            //    .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
             builder.Services.AddSignalR();
             builder.Services.AddSingleton<IDataGenerator, MessageGenerator>();
@@ -42,25 +29,22 @@ namespace DataHub
             {
                 options.Events = new JwtBearerEvents
                 {
+                    // IMPORTANT: This is for SignalR authentication when using WebSockets.
+                    // Should this be removed the connection will be downgraded to long polling.
+                    //                    
+                    // The following error will be thrown in the browser:
+                    //
+                    // Error: Failed to start the transport 'WebSockets': Error: WebSocket failed to connect.
+                    // The connection could not be found on the server, either the endpoint may not be a SignalR endpoint,
+                    // the connection ID is not present on the server, or there is a proxy blocking WebSockets.
+                    // If you have multiple servers check that sticky sessions are enabled.
                     OnMessageReceived = context =>
                     {
                         var accessToken = context.Request.Query["access_token"];
                         if (string.IsNullOrEmpty(accessToken) == false)
                         {
-                             //context.Token = accessToken;
-                            // context.HttpContext.Request.Headers.Add("Authorization", "Bearer " + accessToken);
+                            context.Token = accessToken;
                         }
-                        return Task.CompletedTask;
-                    },
-                    OnAuthenticationFailed = context =>
-                    {
-                        Console.WriteLine("OnAuthenticationFailed: " +
-                                                   context.Exception.Message);
-                        return Task.CompletedTask;
-                    },
-                    OnChallenge = context =>
-                    {
-                        Console.WriteLine("OnChallenge: " + context.AuthenticateFailure?.Message);
                         return Task.CompletedTask;
                     },
                 };
@@ -76,10 +60,7 @@ namespace DataHub
                     ValidateIssuerSigningKey = true
                 };
             });
-
             builder.Services.AddAuthorization();
-
-
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -93,10 +74,8 @@ namespace DataHub
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
 
             app.UseAuthentication();
@@ -105,7 +84,7 @@ namespace DataHub
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
-  
+
             app.MapRazorPages();
             app.MapHub<QueryHub>("hubs/query");
 
