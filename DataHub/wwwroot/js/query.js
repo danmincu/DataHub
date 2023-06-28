@@ -2,7 +2,9 @@
 var connection = new signalR.HubConnectionBuilder()
     .configureLogging(signalR.LogLevel.Information)
     .withAutomaticReconnect()
-    .withUrl("/hubs/query")
+    .withUrl("/hubs/query", {
+        accessTokenFactory: () => "some-access-token"
+    })
     //.withUrl("/hubs/query", signalR.HttpTransportType.WebSockets)
     //.withUrl("/hubs/query", signalR.HttpTransportType.LongPolling)
     .build();

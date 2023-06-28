@@ -43,23 +43,22 @@ namespace DataHub.Hubs
 
         public async Task<string> ReceivedAck(string ackId)
         {
-            Console.WriteLine("AckId: " + ackId);
+            Console.WriteLine("Confirming the delivery of data with AckId: " + ackId);
             this._dataGenerator.SetAckId(ackId);
             return await Task.FromResult(ackId);
         }
 
         public async Task<string> Ack(string ackId)
         {
-            Console.WriteLine("AckId: " + ackId);
             this._dataGenerator.Ack(ackId);
             return await Task.FromResult(ackId);
         }
 
-        public async Task data(string ackId, string data)
-        {
-            Console.WriteLine($"Sending data with ackId: {ackId}");
-            await Clients.Group("liveConnections").SendAsync("data", ackId, data);
-        }
+        //public async Task data(string ackId, string data)
+        //{
+        //    Console.WriteLine($"Sending data with ackId: {ackId}");
+        //    await Clients.Group("liveConnections").SendAsync("data", ackId, data);
+        //}
 
         public async override Task OnConnectedAsync()
         {

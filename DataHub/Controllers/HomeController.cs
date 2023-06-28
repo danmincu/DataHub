@@ -17,7 +17,7 @@ namespace DataHub.Controllers
             _logger = logger;
             dataGenerator.GetStream().Subscribe(async array =>
             {
-                await _context.Clients.All.SendAsync("data", 
+                await _context.Clients.Group("liveConnections").SendAsync("data", 
                     array.LastOrDefault(), 
                     string.Join("\n", array.Take(array.Length - 1))).ConfigureAwait(false);
             });
