@@ -16,6 +16,7 @@ connection.on("updateTotalLiveConnections", function (query) {
 });
 
 connection.on("maxLiveConnectionCountReached", function (maxConnection) {
+    document.getElementById("connectionId").innerText = "MaxLiveConnectionCountReached: " + maxConnection;
     disconnectConnection();
 });
 

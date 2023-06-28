@@ -1,14 +1,36 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNet.SignalR.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 
 namespace DataHub.Hubs
 {
-    public class QueryHub : Hub
+    public class QueryHub : Hub, IHub
     {
         public static int TotalSuccesfullConnections { get; set; }
+        Microsoft.AspNet.SignalR.Hubs.HubCallerContext IHub.Context { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        IHubCallerConnectionContext<dynamic> IHub.Clients { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        Microsoft.AspNet.SignalR.IGroupManager IHub.Groups { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         private int maxLiveConnectionCount = 2;
         private int _maxMessageCount;
+        private IDisposable? _subscription;
+
+        public QueryHub()
+        {
+            _subscription = Program.SimulatedKakaQueue.Subscribe(async (message) =>
+            {
+                //if (liveConnections.Count > 0)
+                //{
+                //    await this.data(Guid.NewGuid().ToString(), string.Join(',',message));
+                //}
+            });
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            _subscription?.Dispose();
+            base.Dispose(disposing);
+        }
 
         private static readonly ConcurrentDictionary<string, string?> liveConnections = new ConcurrentDictionary<string, string?>();
 
@@ -17,7 +39,7 @@ namespace DataHub.Hubs
             _maxMessageCount = maxMessageCount;
             if (ackId != null)
             {
-                Console.WriteLine("AckId: " + ackId);
+                await this.Ack(ackId);
             }
             TotalSuccesfullConnections++;
             await Clients.Group("liveConnections").SendAsync("updateTotalSuccesfullConnections", TotalSuccesfullConnections);
@@ -42,7 +64,7 @@ namespace DataHub.Hubs
 
             if (liveConnections.Count + 1 > maxLiveConnectionCount)
             {
-                await Clients.Client(Context.ConnectionId).SendAsync("maxLiveConnectionCountReached", maxLiveConnectionCount);
+                await Clients.Caller.SendAsync("maxLiveConnectionCountReached", maxLiveConnectionCount);
             }
             else
             {
@@ -52,6 +74,10 @@ namespace DataHub.Hubs
                 liveConnections.TryAdd(Context.ConnectionId, null);
                 await Clients.Group("liveConnections").SendAsync("updateTotalLiveConnections", liveConnections.Count);
                 await base.OnConnectedAsync();
+                _subscription = Program.SimulatedKakaQueue.Subscribe(async (message) =>
+                {
+                    await Clients.Group("liveConnections").SendAsync("data", Guid.NewGuid(), message);
+                });
             }
             
         }
@@ -71,5 +97,19 @@ namespace DataHub.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
+        public Task OnConnected()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task OnReconnected()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task OnDisconnected(bool stopCalled)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
