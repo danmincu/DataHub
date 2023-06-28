@@ -12,13 +12,29 @@ namespace DataHub.Hubs
 
         private static readonly ConcurrentDictionary<string, string?> liveConnections = new ConcurrentDictionary<string, string?>();
 
-        public async Task ConnectQuery(int maxMessageCount)
-        {
+        public async Task<string> ConnectQuery(int maxMessageCount, string? ackId = null)
+        {            
             _maxMessageCount = maxMessageCount;
+            if (ackId != null)
+            {
+                Console.WriteLine("AckId: " + ackId);
+            }
             TotalSuccesfullConnections++;
             await Clients.Group("liveConnections").SendAsync("updateTotalSuccesfullConnections", TotalSuccesfullConnections);
+            return Context.ConnectionId;
         }
 
+        public async Task<string> Ack(string ackId)
+        {
+            Console.WriteLine("AckId: " + ackId);
+            return await Task.FromResult(ackId);
+        }
+
+        public async Task data(string ackId, string data)
+        {
+            Console.WriteLine($"Sending data with ackId: {ackId}");
+            await Clients.Group("liveConnections").SendAsync("data", ackId, data);
+        }
 
         public async override Task OnConnectedAsync()
         {

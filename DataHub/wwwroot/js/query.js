@@ -1,5 +1,5 @@
 // create connection to queryHub
-var connectionQuery = new signalR.HubConnectionBuilder()
+var connection = new signalR.HubConnectionBuilder()
     .configureLogging(signalR.LogLevel.Information)
     .withAutomaticReconnect()
     .withUrl("/hubs/query")
@@ -7,43 +7,48 @@ var connectionQuery = new signalR.HubConnectionBuilder()
     //.withUrl("/hubs/query", signalR.HttpTransportType.LongPolling)
     .build();
 
-connectionQuery.on("updateTotalSuccesfullConnections", function (query) {
-    document.getElementById("totalSuccesfullConnectionsCount").innerText = query;
+connection.on("updateTotalSuccesfullConnections", function (count) {
+    document.getElementById("totalSuccesfullConnectionsCount").innerText = count;
 });
 
-
-connectionQuery.on("updateTotalLiveConnections", function (query) {
+connection.on("updateTotalLiveConnections", function (query) {
     document.getElementById("liveConnectionsCount").innerText = query;
 });
 
-connectionQuery.on("maxLiveConnectionCountReached", function (maxConnection) {
+connection.on("maxLiveConnectionCountReached", function (maxConnection) {
     disconnectConnection();
 });
 
+connection.on("data", function (ackId, data) {
+    console.log("AckId:" + ackId);
+    console.log("Data:" + data);
+});
 
-connectionQuery.on("connectionAccepted", function (maxConnection) {
+connection.on("connectionAccepted", function (maxConnection) {
     setLoggedInLEDColor('blue');
 });
 
 
 function disconnectConnection() {    
-    connectionQuery.stop();
-    connectionQuery = null;
+    connection.stop();
+    connection = null;
     setLoggedInLEDColor('red');    
 }
 
+function connect() {
+    connectAndAck();
+}
 
-function newConnection() {
-    connectionQuery.invoke("ConnectQuery", 1);
+function connectAndAck(ackId) {
+    //do something on start
+    console.log("Connection to User Hub Successful");
+    connection.invoke("ConnectQuery", 1, ackId).then(function (connectionId) {
+        document.getElementById("connectionId").innerText = connectionId;
+        console.log('Connection to User Hub Connected using ' + connectionId);
+    });
     setLEDColor("limegreen");
 }
 
-
-function fulfilled() {
-    //do something on start
-    console.log("Connection to User Hub Successful");
-    newConnection();
-}
 function rejected() {
     //rejected logs
 }
@@ -59,25 +64,25 @@ function setLoggedInLEDColor(color) {
 }
 
 
-connectionQuery.onclose((error) => {
-    //document.body.style.background = "red";
+connection.onclose((error) => {
+    document.getElementById("connectionId").innerText = "";
     setLEDColor('red');
     setLoggedInLEDColor('red');
 });
 
 
-connectionQuery.onreconnecting((connectionId) => {
-   console.log("Connection to User Hub Connected" + connectionId);
-})
-
-connectionQuery.onreconnected((connectionId) => {
-    console.log("Connection to User Hub Reconnected" + connectionId);
+connection.onreconnected((connectionId) => {
+    console.log("Connection to User Hub Reconnected with cid:" + connectionId);
+    document.getElementById("connectionId").innerText = connectionId;
     setLEDColor('green');
 });
 
-connectionQuery.onreconnecting((error) => {
+connection.onreconnecting((error) => {
+    document.getElementById("connectionId").innerText = "";
     console.log("Reconnecting: " + error);
     setLEDColor('orange');
 });
 
-connectionQuery.start().then(fulfilled, rejected);
+
+connection.start().then(() => { connectAndAck("some-ACK_ID") }, rejected);
+//connectionQuery.start().then(connect, rejected);
