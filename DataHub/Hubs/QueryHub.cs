@@ -4,27 +4,18 @@ using System.Collections.Concurrent;
 
 namespace DataHub.Hubs
 {
-    public class QueryHub : Hub, IHub
+    public class QueryHub : Hub
     {
         public static int TotalSuccesfullConnections { get; set; }
-        Microsoft.AspNet.SignalR.Hubs.HubCallerContext IHub.Context { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        IHubCallerConnectionContext<dynamic> IHub.Clients { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        Microsoft.AspNet.SignalR.IGroupManager IHub.Groups { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        
+        public QueryHub(IDataGenerator dataGenerator)
+        {
+            this._dataGenerator = dataGenerator;
+        }
 
         private int maxLiveConnectionCount = 2;
         private int _maxMessageCount;
         private IDisposable? _subscription;
-
-        public QueryHub()
-        {
-            _subscription = Program.SimulatedKakaQueue.Subscribe(async (message) =>
-            {
-                //if (liveConnections.Count > 0)
-                //{
-                //    await this.data(Guid.NewGuid().ToString(), string.Join(',',message));
-                //}
-            });
-        }
 
         protected override void Dispose(bool disposing)
         {
@@ -33,10 +24,13 @@ namespace DataHub.Hubs
         }
 
         private static readonly ConcurrentDictionary<string, string?> liveConnections = new ConcurrentDictionary<string, string?>();
+        private readonly IDataGenerator _dataGenerator;
 
         public async Task<string> ConnectQuery(int maxMessageCount, string? ackId = null)
         {            
             _maxMessageCount = maxMessageCount;
+            //Context.Items.Add("maxMessageCount", maxMessageCount);
+            this._dataGenerator.SetMaxMessageCount(maxMessageCount);
             if (ackId != null)
             {
                 await this.Ack(ackId);
@@ -46,9 +40,18 @@ namespace DataHub.Hubs
             return Context.ConnectionId;
         }
 
+
+        public async Task<string> ReceivedAck(string ackId)
+        {
+            Console.WriteLine("AckId: " + ackId);
+            this._dataGenerator.SetAckId(ackId);
+            return await Task.FromResult(ackId);
+        }
+
         public async Task<string> Ack(string ackId)
         {
             Console.WriteLine("AckId: " + ackId);
+            this._dataGenerator.Ack(ackId);
             return await Task.FromResult(ackId);
         }
 
@@ -74,10 +77,6 @@ namespace DataHub.Hubs
                 liveConnections.TryAdd(Context.ConnectionId, null);
                 await Clients.Group("liveConnections").SendAsync("updateTotalLiveConnections", liveConnections.Count);
                 await base.OnConnectedAsync();
-                _subscription = Program.SimulatedKakaQueue.Subscribe(async (message) =>
-                {
-                    await Clients.Group("liveConnections").SendAsync("data", Guid.NewGuid(), message);
-                });
             }
             
         }
@@ -91,25 +90,14 @@ namespace DataHub.Hubs
             {
                 await this.Groups.RemoveFromGroupAsync(cid, "liveConnections").ConfigureAwait(false);
                 liveConnections.TryRemove(cid, out string? value1);
+                if (liveConnections.Count == 0)
+                {
+                    this._dataGenerator.Reset();
+                }
             }
             
             Clients.Group("liveConnections").SendAsync("updateTotalLiveConnections", liveConnections.Count).GetAwaiter().GetResult();
             await base.OnDisconnectedAsync(exception);
-        }
-
-        public Task OnConnected()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task OnReconnected()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task OnDisconnected(bool stopCalled)
-        {
-            throw new NotImplementedException();
         }
     }
 }

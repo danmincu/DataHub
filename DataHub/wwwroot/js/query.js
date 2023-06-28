@@ -21,8 +21,12 @@ connection.on("maxLiveConnectionCountReached", function (maxConnection) {
 });
 
 connection.on("data", function (ackId, data) {
-    console.log("AckId:" + ackId);
-    console.log("Data:" + data);
+    receivedAck(ackId);
+    //console.log("AckId:" + ackId);
+    //console.log(data);
+    document.getElementById("messages").innerText = "ACK: " + ackId + '\n' + data;
+    //Auto ACK
+    ack(ackId);
 });
 
 connection.on("connectionAccepted", function (maxConnection) {
@@ -40,10 +44,20 @@ function connect() {
     connectAndAck();
 }
 
+function receivedAck(ackId) {
+    connection.invoke("ReceivedAck", ackId);
+}
+
+function ack(ackId) {
+    connection.invoke("Ack", ackId).then(function (ack) {
+        console.log(ack);
+    });
+}
+
 function connectAndAck(ackId) {
     //do something on start
     console.log("Connection to User Hub Successful");
-    connection.invoke("ConnectQuery", 1, ackId).then(function (connectionId) {
+    connection.invoke("ConnectQuery", 15, ackId).then(function (connectionId) {
         document.getElementById("connectionId").innerText = connectionId;
         console.log('Connection to User Hub Connected using ' + connectionId);
     });

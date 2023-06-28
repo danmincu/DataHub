@@ -9,7 +9,6 @@ namespace DataHub
 {
     public class Program
     {
-        static public IObservable<string[]> SimulatedKakaQueue;
 
         public static void Main(string[] args)
         {
@@ -25,6 +24,7 @@ namespace DataHub
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
             builder.Services.AddSignalR();
+            builder.Services.AddSingleton<IDataGenerator, MessageGenerator>();
 
             var app = builder.Build();
 
@@ -53,23 +53,7 @@ namespace DataHub
                 pattern: "{controller=Home}/{action=Index}/{id?}");
             app.MapRazorPages();
             app.MapHub<QueryHub>("hubs/query");
-
-            var subject = new ObservableArraySubject();
-
-            SimulatedKakaQueue = subject.GetStream();
-
-            //var context = GlobalHost.ConnectionManager.GetHubContext<QueryHub>();
-            //context.Clients.All.Send("Admin", "stop the chat");
-
-            //subject.GetStream().Subscribe(array =>
-            //{
-            //    foreach (var s in array)
-            //    {
-            //       Console.WriteLine(s);
-            //    }
-            //    Console.WriteLine();
-            //});
-
+      
             app.Run();
 
            

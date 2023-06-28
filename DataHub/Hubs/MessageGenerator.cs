@@ -7,30 +7,57 @@
 
 namespace DataHub.Hubs
 { 
+    public interface IDataGenerator
+    {
+        IObservable<string[]> GetStream();
+        
+        void SetMaxMessageCount(int maxMessageCount);
+        
+        void Ack(string ackId);
 
-    public class ObservableArraySubject
+        void SetAckId(string ackId);
+
+        void Reset();
+    }
+
+    public class MessageGenerator: IDataGenerator
     {
         private static readonly Random RandomGenerator = new Random();
-        private const int MaxStringLength = 10;
-        private const int MaxArrayLength = 5;
+        private const int MaxStringLength = 10;        
         private readonly ISubject<string[]> _subject;
         private readonly System.Timers.Timer _timer;
+        private int maxMessageCount = 5;
+        private string? lastAckId;
 
-        public ObservableArraySubject()
+        public MessageGenerator()
         {
             _subject = new ReplaySubject<string[]>();
             _timer = new System.Timers.Timer(5000);
             _timer.Elapsed += TimerElapsed;
-
             _timer.Start();
+        }
+        
+        public void SetAckId(string ackId) { 
+            lastAckId = ackId;
         }
 
         private void TimerElapsed(object sender, ElapsedEventArgs e)
         {
+            if (lastAckId != null)
+            {
+                return;
+            }
             var randomStrings = new List<string>();
-            for (var i = 0; i < MaxArrayLength; i++)
+            var randomMessageCount = RandomGenerator.Next(0, this.maxMessageCount);
+            for (var i = 0; i < Math.Max(0,Math.Min(randomMessageCount, 1000)); i++)
             {
                 randomStrings.Add(GetRandomString());
+            }
+            if (randomStrings.Count > 0)
+            {
+                var newAckId = Guid.NewGuid().ToString();
+                Console.WriteLine($"Sending data with ackId: {newAckId}");
+                randomStrings.Add(newAckId);
             }
             _subject.OnNext(randomStrings.ToArray());
         }
@@ -44,7 +71,29 @@ namespace DataHub.Hubs
 
         public IObservable<string[]> GetStream()
         {
+            
             return _subject.AsObservable();
+        }
+
+        public void SetMaxMessageCount(int maxMessageCount)
+        {
+            this.maxMessageCount = maxMessageCount;
+        }
+
+
+        public void Reset()
+        {
+            lastAckId = null;
+            Console.WriteLine("Reset");
+        }
+
+        public void Ack(string ackId)
+        {
+            if (lastAckId == ackId)
+            {
+                lastAckId = null;
+                Console.WriteLine("AckId: " + ackId);
+            }
         }
     }
 }
