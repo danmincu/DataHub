@@ -1,9 +1,23 @@
+
+function getToken() {
+
+    const url = `/security/createToken?user=service-account-data`;
+    return fetch(url)
+        .then(response => response.json())
+        .then(data => data)
+        .catch(error => {
+            console.error('Error:', error);
+            return null;
+        });
+}
+
+
 // create connection to queryHub
 var connection = new signalR.HubConnectionBuilder()
     .configureLogging(signalR.LogLevel.Information)
     .withAutomaticReconnect()
     .withUrl("/hubs/query", {
-        accessTokenFactory: () => "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjgyYWYwNjE2LTQzYWItNGIyYy04MmU2LTVhNWVlZWUwNjhkZSIsInN1YiI6InNlcnZpY2UtYWNjb3VudC1kYXRhIiwiZW1haWwiOiJzZXJ2aWNlLWFjY291bnQtZGF0YSIsImp0aSI6ImE5M2U1ZGVkLWE3YjktNDdiOS1hOWRiLWM4MzgxOGYwNzYyOCIsIm5iZiI6MTY4Nzk2NzczMSwiZXhwIjo0ODQzNjQxMzMxLCJpYXQiOjE2ODc5Njc3MzEsImlzcyI6Imh0dHBzOi8vYWJjLmNvbS8iLCJhdWQiOiJodHRwczovL2FiYy5jb20vIn0.YHTtjDuAa4bjS2UvU9Kke_8Xt4UmNwEwbMsTbK4137JUcqORtNgPqKWA_r7A48v6m7AUOIp4k20_qOZOlW5J2g"
+        accessTokenFactory: () => { return getToken() } //"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjgyYWYwNjE2LTQzYWItNGIyYy04MmU2LTVhNWVlZWUwNjhkZSIsInN1YiI6InNlcnZpY2UtYWNjb3VudC1kYXRhIiwiZW1haWwiOiJzZXJ2aWNlLWFjY291bnQtZGF0YSIsImp0aSI6ImE5M2U1ZGVkLWE3YjktNDdiOS1hOWRiLWM4MzgxOGYwNzYyOCIsIm5iZiI6MTY4Nzk2NzczMSwiZXhwIjo0ODQzNjQxMzMxLCJpYXQiOjE2ODc5Njc3MzEsImlzcyI6Imh0dHBzOi8vYWJjLmNvbS8iLCJhdWQiOiJodHRwczovL2FiYy5jb20vIn0.YHTtjDuAa4bjS2UvU9Kke_8Xt4UmNwEwbMsTbK4137JUcqORtNgPqKWA_r7A48v6m7AUOIp4k20_qOZOlW5J2g"
     })
     //.withUrl("/hubs/query", signalR.HttpTransportType.WebSockets)
     //.withUrl("/hubs/query", signalR.HttpTransportType.LongPolling)
@@ -34,10 +48,10 @@ connection.on("connectionAccepted", function (maxConnection) {
 });
 
 
-function disconnectConnection() {    
+function disconnectConnection() {
     connection.stop();
     connection = null;
-    setLoggedInLEDColor('red');    
+    setLoggedInLEDColor('red');
 }
 
 function connect() {
@@ -99,6 +113,7 @@ connection.onreconnecting((error) => {
     setLEDColor('orange');
 });
 
+//getToken();
 
 connection.start().then(() => { connectAndAck("some-ACK_ID") }, rejected);
 //connectionQuery.start().then(connect, rejected);

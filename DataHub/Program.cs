@@ -57,6 +57,10 @@ namespace DataHub
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = false,
+                    LifetimeValidator = (before, expires, token, param) =>
+                    {
+                        return expires > DateTime.UtcNow;
+                    },
                     ValidateIssuerSigningKey = true
                 };
             });
@@ -86,8 +90,16 @@ namespace DataHub
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
             app.MapRazorPages();
-            app.MapHub<QueryHub>("hubs/query");
+            //app.MapHub<QueryHub>("hubs/query");
 
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapHub<QueryHub>("hubs/query", options =>
+                {
+                    options.CloseOnAuthenticationExpiration = true;
+                });
+            });
 
 
             app.MapGet("/security/createToken",
@@ -109,7 +121,7 @@ namespace DataHub
                             new Claim(JwtRegisteredClaimNames.Jti,
                             Guid.NewGuid().ToString())
                          }),
-                        Expires = DateTime.UtcNow.AddYears(100),
+                        Expires = DateTime.UtcNow.AddSeconds(60),
                         Issuer = issuer,
                         Audience = audience,
                         SigningCredentials = new SigningCredentials
