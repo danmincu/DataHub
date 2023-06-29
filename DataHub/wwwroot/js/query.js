@@ -83,16 +83,6 @@ function rejected() {
     //rejected logs
 }
 
-function setLEDColor(color) {
-    var led = document.getElementById('led');
-    led.className = 'led ' + color;
-}
-
-function setLoggedInLEDColor(color) {
-    var led = document.getElementById('loggedInLed');
-    led.className = 'led ' + color;
-}
-
 
 connection.onclose((error) => {
     document.getElementById("connectionId").innerText = "";
@@ -113,7 +103,20 @@ connection.onreconnecting((error) => {
     setLEDColor('orange');
 });
 
-//getToken();
 
+//todo
 connection.start().then(() => { connectAndAck("some-ACK_ID") }, rejected);
 //connectionQuery.start().then(connect, rejected);
+
+
+// UI updates
+
+function setLEDColor(color) {
+    var led = document.getElementById('led');
+    led.className = 'led ' + color;
+}
+
+function setLoggedInLEDColor(color) {
+    var led = document.getElementById('loggedInLed');
+    led.className = 'led ' + color;
+}

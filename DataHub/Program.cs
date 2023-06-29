@@ -121,7 +121,7 @@ namespace DataHub
                             new Claim(JwtRegisteredClaimNames.Jti,
                             Guid.NewGuid().ToString())
                          }),
-                        Expires = DateTime.UtcNow.AddSeconds(60),
+                        Expires = DateTime.UtcNow.AddSeconds(60).AddMonths(1),
                         Issuer = issuer,
                         Audience = audience,
                         SigningCredentials = new SigningCredentials

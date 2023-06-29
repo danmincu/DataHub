@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 using Hub = Microsoft.AspNetCore.SignalR.Hub;
 
 namespace DataHub.Hubs
 {
     // if AuthenticationSchemes = "Bearer" is missing it behaves like an AllowAnonymous Hub. didn't investigate why.
-    [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = "Bearer")]    
+    [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]    
     public class QueryHub : Hub
     {
         public static int TotalSuccesfullConnections { get; set; }
