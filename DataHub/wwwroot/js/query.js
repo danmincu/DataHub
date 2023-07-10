@@ -17,7 +17,7 @@ var connection = new signalR.HubConnectionBuilder()
     .configureLogging(signalR.LogLevel.Information)
     .withAutomaticReconnect()
     .withUrl("/hubs/query", {
-        accessTokenFactory: () => { return getToken() } //"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjgyYWYwNjE2LTQzYWItNGIyYy04MmU2LTVhNWVlZWUwNjhkZSIsInN1YiI6InNlcnZpY2UtYWNjb3VudC1kYXRhIiwiZW1haWwiOiJzZXJ2aWNlLWFjY291bnQtZGF0YSIsImp0aSI6ImE5M2U1ZGVkLWE3YjktNDdiOS1hOWRiLWM4MzgxOGYwNzYyOCIsIm5iZiI6MTY4Nzk2NzczMSwiZXhwIjo0ODQzNjQxMzMxLCJpYXQiOjE2ODc5Njc3MzEsImlzcyI6Imh0dHBzOi8vYWJjLmNvbS8iLCJhdWQiOiJodHRwczovL2FiYy5jb20vIn0.YHTtjDuAa4bjS2UvU9Kke_8Xt4UmNwEwbMsTbK4137JUcqORtNgPqKWA_r7A48v6m7AUOIp4k20_qOZOlW5J2g"
+        accessTokenFactory: () => { return getToken() }
     })
     //.withUrl("/hubs/query", signalR.HttpTransportType.WebSockets)
     //.withUrl("/hubs/query", signalR.HttpTransportType.LongPolling)
@@ -71,7 +71,7 @@ function ack(ackId) {
 function connectAndAck(ackId) {
     //do something on start
     console.log("Connection to User Hub Successful");
-    var maxEventCount = 15;
+    var maxEventCount = 115;
     connection.invoke("connectToHub", maxEventCount, ackId).then(function (connectionId) {
         document.getElementById("connectionId").innerText = connectionId;
         console.log('Connection to User Hub Connected using ' + connectionId);

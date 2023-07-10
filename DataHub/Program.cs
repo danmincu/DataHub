@@ -1,4 +1,5 @@
 using DataHub.Hubs;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -16,7 +17,7 @@ namespace DataHub
             var builder = WebApplication.CreateBuilder(args);
             // Add services to the container.
             builder.Services.AddControllersWithViews();
-            builder.Services.AddSignalR();
+            
             builder.Services.AddSingleton<IDataGenerator, MessageGenerator>();
             builder.Services.AddRazorPages();
 
@@ -49,7 +50,7 @@ namespace DataHub
                     },
                 };
                 options.TokenValidationParameters = new TokenValidationParameters
-                {
+                {   
                     ValidIssuer = builder.Configuration["Jwt:Issuer"],
                     ValidAudience = builder.Configuration["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey
@@ -65,6 +66,10 @@ namespace DataHub
                 };
             });
             builder.Services.AddAuthorization();
+
+            builder.Services.AddTransient<IClaimsTransformation, CustomClaimsTransformation>();
+            builder.Services.AddSignalR();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -119,9 +124,10 @@ namespace DataHub
                             new Claim(JwtRegisteredClaimNames.Sub, user),
                             new Claim(JwtRegisteredClaimNames.Email, user),
                             new Claim(JwtRegisteredClaimNames.Jti,
-                            Guid.NewGuid().ToString())
+                            Guid.NewGuid().ToString()),
+                            new Claim("client_role","service")
                          }),
-                        Expires = DateTime.UtcNow.AddSeconds(60).AddMonths(1),
+                        Expires = DateTime.UtcNow.AddSeconds(1000),
                         Issuer = issuer,
                         Audience = audience,
                         SigningCredentials = new SigningCredentials
@@ -137,12 +143,7 @@ namespace DataHub
                 return Results.Unauthorized();
             });
 
-
-
-
-
             app.Run();
-
 
         }
     }

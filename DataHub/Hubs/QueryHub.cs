@@ -6,7 +6,7 @@ using Hub = Microsoft.AspNetCore.SignalR.Hub;
 namespace DataHub.Hubs
 {
     // if AuthenticationSchemes = "Bearer" is missing it behaves like an AllowAnonymous Hub. didn't investigate why.
-    [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]    
+    [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "service")]    
     public class QueryHub : Hub
     {
         public static int TotalSuccesfullConnections { get; set; }
@@ -50,6 +50,9 @@ namespace DataHub.Hubs
             return await Task.FromResult(ackId);
         }
 
+
+        // THIS
+
         [Microsoft.AspNetCore.SignalR.HubMethodName("hard-ack")]
         public async Task<string> Ack(string ackId)
         {
@@ -57,12 +60,8 @@ namespace DataHub.Hubs
             return await Task.FromResult(ackId);
         }
 
-        //public async Task Data(string ackId, string data)
-        //{
-        //    Console.WriteLine($"Sending data with ackId: {ackId}");
-        //    await Clients.Group("liveConnections").SendAsync("data", ackId, data);
-        //}
 
+        // THIS
         public async override Task OnConnectedAsync()
         {
             Console.WriteLine("Connect " + Context.ConnectionId);
@@ -82,6 +81,9 @@ namespace DataHub.Hubs
             }
             
         }
+
+
+        // THIS
 
         public async override Task OnDisconnectedAsync(Exception? exception)
         {

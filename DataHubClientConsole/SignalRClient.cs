@@ -1,13 +1,10 @@
-﻿//using Microsoft.AspNet.SignalR.Client;
-using Microsoft.AspNetCore.Http.Connections.Client;
-using Microsoft.AspNetCore.SignalR.Client;
+﻿using Microsoft.AspNetCore.SignalR.Client;
 
 namespace DataHubClientConsole
 {
     public class SignalRClient
     {
-        private Microsoft.AspNetCore.SignalR.Client.HubConnection connection;
-        private string token;
+        private HubConnection connection;
 
         private async Task<string> GetToken()
         {
