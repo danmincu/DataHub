@@ -127,7 +127,7 @@ namespace DataHub
                             Guid.NewGuid().ToString()),
                             new Claim("client_role","service")
                          }),
-                        Expires = DateTime.UtcNow.AddSeconds(1000),
+                        Expires = DateTime.UtcNow.AddSeconds(600),
                         Issuer = issuer,
                         Audience = audience,
                         SigningCredentials = new SigningCredentials
@@ -143,7 +143,12 @@ namespace DataHub
                 return Results.Unauthorized();
             });
 
+
+
+
+
             app.Run();
+
 
         }
     }
